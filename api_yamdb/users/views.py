@@ -1,8 +1,6 @@
-from django.shortcuts import render
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, viewsets
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.crypto import get_random_string
