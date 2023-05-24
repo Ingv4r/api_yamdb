@@ -20,3 +20,4 @@ class User(AbstractUser):
         default='user',
     )
     email = models.EmailField(unique=True, max_length=254)
+    confirmation_code = models.CharField(max_length=16)
