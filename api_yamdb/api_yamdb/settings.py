@@ -1,7 +1,6 @@
-from pathlib import Path
-from datetime import timedelta
 import os
-
+from datetime import timedelta
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -117,11 +116,11 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
 }
 
 SIMPLE_JWT = {
-    "SLIDING_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'SLIDING_TOKEN_OBTAIN_SERIALIZER': 'api.serializers.MyTokenObtainSerializer',
+    'TOKEN_OBTAIN_SERIALIZER': 'api.serializers.MyTokenObtainSerializer',
 }

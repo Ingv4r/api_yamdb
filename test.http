@@ -1,5 +1,47 @@
 curl \
   -X POST \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin"}' \
+  -d '{"username": "igor", "email": "igor@mail.com"}' \
+  http://127.0.0.1:8000/api/v1/auth/signup/
+###
+curl \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "igor", "confirmation_code": "Zprw3Ix24GwG"}' \
   http://127.0.0.1:8000/api/v1/auth/token/
+###
+curl \
+  -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg1MTc5NTUyLCJpYXQiOjE2ODUwOTMxNTIsImp0aSI6IjYyNzgwMDIwZWM3YzQ0YmZiYTAwNzkzNmY2MmMyYjgzIiwidXNlcl9pZCI6MX0.loTbWotxWd5b65QGiTwYRHtDjVeBlwcsACp5ZSkBE_U" \
+  -d '{"username": "admin", "email": "admin@mail.com",
+    "role": "user"}' \
+  http://127.0.0.1:8000/api/v1/users/me/
+###
+curl \
+  -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg1MTgzMTgxLCJpYXQiOjE2ODUwOTY3ODEsImp0aSI6IjRjNWJhM2YxYTJiODQwY2E4NjE4MzJmNjBjNmMwZDJiIiwidXNlcl9pZCI6Mn0.VOUl-4Xux9ShIthmrr251WcBRZURGZQxf-p7p31kIZU" \
+  -d '{"username": "igor", "email": "igor@mail.com",
+    "role": "user"}' \
+  http://127.0.0.1:8000/api/v1/users/me/
+###
+curl \
+  -X POST  \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg1MTc5NTUyLCJpYXQiOjE2ODUwOTMxNTIsImp0aSI6IjYyNzgwMDIwZWM3YzQ0YmZiYTAwNzkzNmY2MmMyYjgzIiwidXNlcl9pZCI6MX0.loTbWotxWd5b65QGiTwYRHtDjVeBlwcsACp5ZSkBE_U" \
+  -d '{"username": "admin", "email": "admin@mail.com"}' \
+  http://127.0.0.1:8000/api/v1/users/
+###
+curl \
+  -X GET \
+  -H "Content-Type: application/json" \
+  -d '{
+      "username": "II",
+      "email": "II@mail.com",
+      "first_name": "I",
+      "last_name": "I",
+      "bio": "",
+      "role": "user"
+    }' \
+  http://127.0.0.1:8000/api/v1/users/
