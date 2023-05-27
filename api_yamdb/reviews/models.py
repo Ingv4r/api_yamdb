@@ -7,8 +7,9 @@ LIMITTEXT = 15
 
 
 class Review(models.Model):
+    """Модель обзоров."""
     title = models.ForeignKey(
-        1,  # Title,
+        Title,  # Ждем класс произведений
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение',
@@ -45,6 +46,34 @@ class Review(models.Model):
                 name='unique_title_author'
             ),
         )
+
+    def __str__(self):
+        return self.text[:LIMITTEXT]
+
+
+class Comments(models.Model):
+    """Модель комментариев."""
+    author = models.ForeignKey(
+        User,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        verbose_name='Автор комментария'
+    )
+    review = models.ForeignKey(
+        Review,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        verbose_name='Комментируемый отзыв'
+    )
+    text = models.TextField('Ваш комментарий')
+    pub_date = models.DateTimeField(
+        'Дата комментария',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text[:LIMITTEXT]
