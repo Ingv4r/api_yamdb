@@ -8,13 +8,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_alter_confirmationcode_user'),
+        ("users", "0002_alter_confirmationcode_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='confirmationcode',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='activation_code', to=settings.AUTH_USER_MODEL),
+            model_name="confirmationcode",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="activation_code",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]
