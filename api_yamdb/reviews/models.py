@@ -2,13 +2,64 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .validators import validate_year
+
 User = get_user_model()
 LIMITTEXT = 15
 
 
+class Genre(models.Model):
+    """Модель жанра."""
+    name = models.CharField('Название', max_length=256)
+    slug = models.SlugField('URL жанра', unique=True, max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Жанр'
+
+
+class Category(models.Model):
+    """Модель категорий."""
+    name = models.CharField('Название', max_length=256)
+    slug = models.SlugField('URL категории', unique=True, max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Категория'
+
+
+class Title(models.Model):
+    """Модель произведений на сайте."""
+    name = models.CharField('Название', max_length=256)
+    year = models.IntegerField(
+        'Год выхода',
+        validators=(validate_year, )
+    )
+    description = models.TextField('Описание', blank=True, null=True)
+    genre = models.ManyToManyField(
+        Genre, related_name='titles', verbose_name='Жанр'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null = True,
+        related_name='title',
+        verbose_name='Категория'
+    )
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+
 class Review(models.Model):
+    """Модель обзоров."""
     title = models.ForeignKey(
-        1,  # Title,
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение',
@@ -45,6 +96,34 @@ class Review(models.Model):
                 name='unique_title_author'
             ),
         )
+
+    def __str__(self):
+        return self.text[:LIMITTEXT]
+
+
+class Comment(models.Model):
+    """Модель комментариев."""
+    author = models.ForeignKey(
+        User,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        verbose_name='Автор комментария'
+    )
+    review = models.ForeignKey(
+        Review,
+        related_name='comments',
+        on_delete=models.CASCADE,
+        verbose_name='Комментируемый отзыв'
+    )
+    text = models.TextField('Ваш комментарий')
+    pub_date = models.DateTimeField(
+        'Дата комментария',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text[:LIMITTEXT]
