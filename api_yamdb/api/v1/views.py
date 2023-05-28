@@ -1,26 +1,108 @@
 from django.db.models import Avg
-from django_filters.rest_framework import DjangoFilterBackend
 
-from django.shortcuts import get_object_or_404
-
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Review, Title
-from .filters import TitleFilterSet
 from .mixins import ModelMixinSet
-from .permissions import (
-    AuthorOrModeratorReadOnly,
-    AuthorAndStaffOrReadOnly,
-    IsAdminOrReadOnly
-)
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
-    ReviewSerializer, TitleReadSerializer, TitleWriteSerializer)
+    ReviewSerializer, TitleReadSerializer, TitleWriteSerializer,
+    MyTokenObtainSerializer,
+)
 from rest_framework_simplejwt.views import TokenObtainSlidingView
 
-from v1.serializers import MyTokenObtainSerializer
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated
+)
+from rest_framework.response import Response
+
+from users.models import ConfirmationCode
+from .pagination import UsersPagination
+from .permissions import (
+    SuperUserOrAdminOnly,
+    AuthorOrStuffOnly,
+    SuperUserOrAdminCreateOnly,
+)
+from .serializers import AdminSerializer, AuthSerializer, MeSerializer
+
+User = get_user_model()
+
+
+class UserAuthView(viewsets.ViewSet):
+    '''Docsting'''
+    queryset = User.objects.all()
+
+    def create(self, request):
+        '''Docsting'''
+        serializer = AuthSerializer(data=request.data)
+        print(request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
+        user = User.objects.get_or_create(
+            username=username,
+            email=email,
+        )[0]
+        code = ConfirmationCode.objects.get_or_create(user=user)[0]
+        send_mail(
+            'confirmation_code',
+            str(code),
+            'from@example.com',
+            [user.email],
+            fail_silently=False,
+        )
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    '''Docsting'''
+    queryset = User.objects.all()
+    serializer_class = AdminSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = UsersPagination
+    permission_classes = (SuperUserOrAdminOnly,)
+    http_method_names = ('get', 'post', 'patch', 'delete')
+
+    def get_object(self):
+        '''Docsting'''
+        username = self.kwargs[self.lookup_field]
+        obj = get_object_or_404(User, username=username)
+        return obj
+
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[IsAuthenticated]
+    )
+    def me(self, request):
+        '''Docsting'''
+        user = get_object_or_404(User, pk=request.user.id)
+        serializer = MeSerializer()
+        if request.method == 'GET':
+            serializer = MeSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PATCH':
+
+            serializer = MeSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_200_OK
+                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class MyTokenObtainSlidingView(TokenObtainSlidingView):
@@ -31,7 +113,7 @@ class MyTokenObtainSlidingView(TokenObtainSlidingView):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет отзывов."""
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorOrModeratorReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, AuthorOrStuffOnly)
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -46,7 +128,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (AuthorAndStaffOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, AuthorOrStuffOnly)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -70,7 +152,7 @@ class GenreViewSet(ModelMixinSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, SuperUserOrAdminOnly)
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
@@ -81,7 +163,10 @@ class CategoryViewSet(ModelMixinSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        SuperUserOrAdminCreateOnly
+    )
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
@@ -90,10 +175,15 @@ class CategoryViewSet(ModelMixinSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет с произведениями."""
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = TitleFilterSet
+    permission_classes = (IsAuthenticatedOrReadOnly, SuperUserOrAdminOnly)
+    filter_backends = (filters.SearchFilter,)
     pagination_class = LimitOffsetPagination
+    search_fields = (
+        'category__slug',
+        'genre__slug',
+        'name',
+        'yaer',
+    )
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

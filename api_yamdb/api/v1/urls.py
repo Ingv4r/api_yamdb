@@ -1,17 +1,21 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from v1.views import MyTokenObtainSlidingView
 from .views import (
     GenreViewSet,
     CategoryViewSet,
     TitleViewSet,
     ReviewViewSet,
-    CommentViewSet
+    CommentViewSet,
+    MyTokenObtainSlidingView,
+    UserAuthView,
+    UsersViewSet
 )
 
 app_name = 'api'
 
 router1 = DefaultRouter()
+router1.register('auth/signup', UserAuthView)
+router1.register(r'users', UsersViewSet)
 router1.register('genres', GenreViewSet, basename='genres')
 router1.register('categories', CategoryViewSet, basename='categories')
 router1.register('titles', TitleViewSet, basename='titles')
