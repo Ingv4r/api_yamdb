@@ -18,6 +18,14 @@ from .permissions import (
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TitleReadSerializer, TitleWriteSerializer)
+from rest_framework_simplejwt.views import TokenObtainSlidingView
+
+from v1.serializers import MyTokenObtainSerializer
+
+
+class MyTokenObtainSlidingView(TokenObtainSlidingView):
+    '''Docsting'''
+    serializer_class = MyTokenObtainSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

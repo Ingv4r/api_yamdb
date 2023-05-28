@@ -1,8 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainSlidingView
-)
+from v1.views import MyTokenObtainSlidingView
 from .views import (
     GenreViewSet,
     CategoryViewSet,
@@ -29,8 +27,8 @@ router1.register(
 urlpatterns = [
     path(
         'v1/auth/token/',
-        TokenObtainSlidingView.as_view(),
-        name='token_obtain'
+        MyTokenObtainSlidingView.as_view(),
+        name='token_obtain_view'
     ),
     path('v1/', include(router1.urls)),
 ]
