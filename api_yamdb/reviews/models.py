@@ -135,3 +135,27 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text[:LIMITTEXT]
+
+
+class TitleGenre(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Произведение'
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'genre'],
+                name='unique_title_genre_pair'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.title} {self.genre}'

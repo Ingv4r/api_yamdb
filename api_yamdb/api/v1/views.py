@@ -18,7 +18,6 @@ from users.models import ConfirmationCode
 
 from .filtersets import TitleFilterSet
 from .mixins import ModelMixinSet
-from .pagination import UsersPagination
 from .permissions import (
     AuthorOrStuffOnly,
     IsAdminUserOrReadOnly,
@@ -74,7 +73,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = AdminSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ("username",)
-    pagination_class = UsersPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (SuperUserOrAdminOnly,)
     http_method_names = ("get", "post", "patch", "delete")
 
