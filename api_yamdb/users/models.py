@@ -30,7 +30,7 @@ class ConfirmationCode(models.Model):
         on_delete=models.CASCADE,
         related_name="activation_code",
     )
-    code = models.CharField(max_length=6, default=get_random_string)
+    code = models.CharField(max_length=6, default=get_random_string(6))
 
     def __str__(self) -> str:
         return self.code
