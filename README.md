@@ -37,6 +37,11 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
+## Копирование в базу данных из csv файлов
+- В директории с файлом manage.py выполнить команду
+```
+python manage.py csv_to_bd
+```
 ## Создание суперпользователя
 - В директории с файлом manage.py выполнить команду
 ```
