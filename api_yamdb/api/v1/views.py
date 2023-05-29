@@ -34,7 +34,6 @@ class UserAuthView(viewsets.ViewSet):
     def create(self, request):
         """Кастомный POST метод с отправкой email."""
         serializer = AuthSerializer(data=request.data)
-        print(request.data)
         serializer.is_valid(raise_exception=True)
         user, _ = User.objects.get_or_create(
             username=serializer.validated_data["username"],
@@ -42,10 +41,10 @@ class UserAuthView(viewsets.ViewSet):
         )
         code, _ = ConfirmationCode.objects.get_or_create(user=user)
         send_mail(
-            "confirmation_code",
-            str(code),
-            "from@example.com",
-            [user.email],
+            subject="confirmation_code",
+            message=str(code),
+            from_email="from@example.com",
+            recipient_list=[user.email],
             fail_silently=False,
         )
         return Response(data=serializer.data, status=status.HTTP_200_OK)
