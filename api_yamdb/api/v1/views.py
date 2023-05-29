@@ -7,55 +7,40 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainSlidingView
+
 from reviews.models import Category, Genre, Review, Title
 from users.models import ConfirmationCode
 
 from .filtersets import TitleFilterSet
 from .mixins import ModelMixinSet
-from .permissions import (
-    AuthorOrStuffOnly,
-    IsAdminUserOrReadOnly,
-    SuperUserOrAdminOnly,
-)
-from .serializers import (
-    AdminSerializer,
-    AuthSerializer,
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    MeSerializer,
-    MyTokenObtainSerializer,
-    ReviewSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer,
-)
+from .permissions import (AuthorOrStuffOnly, IsAdminUserOrReadOnly,
+                          SuperUserOrAdminOnly)
+from .serializers import (AdminSerializer, AuthSerializer, CategorySerializer,
+                          CommentSerializer, GenreSerializer, MeSerializer,
+                          MyTokenObtainSerializer, ReviewSerializer,
+                          TitleReadSerializer, TitleWriteSerializer)
 
 User = get_user_model()
 
 
 class UserAuthView(viewsets.ViewSet):
-    """Docsting"""
-
+    """Вьюсет для регитсрации и получения confirmation_code."""
     queryset = User.objects.all()
 
     def create(self, request):
-        """Docsting"""
+        """Кастомный POST метод с отправкой email."""
         serializer = AuthSerializer(data=request.data)
         print(request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        email = serializer.validated_data["email"]
-        user = User.objects.get_or_create(
-            username=username,
-            email=email,
-        )[0]
-        code = ConfirmationCode.objects.get_or_create(user=user)[0]
+        user, _ = User.objects.get_or_create(
+            username=serializer.validated_data["username"],
+            email=serializer.validated_data["email"],
+        )
+        code, _ = ConfirmationCode.objects.get_or_create(user=user)
         send_mail(
             "confirmation_code",
             str(code),
@@ -67,8 +52,7 @@ class UserAuthView(viewsets.ViewSet):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    """Docsting"""
-
+    """Вьюсет для users."""
     queryset = User.objects.all()
     serializer_class = AdminSerializer
     filter_backends = (filters.SearchFilter,)
@@ -78,7 +62,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     http_method_names = ("get", "post", "patch", "delete")
 
     def get_object(self):
-        """Docsting"""
+        """Кастомный get метод."""
         username = self.kwargs[self.lookup_field]
         obj = get_object_or_404(User, username=username)
         return obj
@@ -89,7 +73,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        """Docsting"""
+        """"GET и PATCH методы эндпоинта users/me."""
         user = get_object_or_404(User, pk=request.user.id)
         serializer = MeSerializer()
         if request.method == "GET":
@@ -107,14 +91,12 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 
 class MyTokenObtainSlidingView(TokenObtainSlidingView):
-    """Docsting"""
-
+    """Представление для получения access-токена."""
     serializer_class = MyTokenObtainSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет отзывов."""
-
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, AuthorOrStuffOnly)
 
@@ -130,11 +112,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментариев."""
-
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, AuthorOrStuffOnly)
 
     def get_queryset(self):
+        """Кастомный queryset."""
         review_id = self.kwargs.get("review_id")
         title_id = self.kwargs.get("title_id")
         review = get_object_or_404(
@@ -143,6 +125,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments.all()
 
     def perform_create(self, serializer):
+        """Кастомный create-метод."""
         review_id = self.kwargs.get("review_id")
         title_id = self.kwargs.get("title_id")
         review = get_object_or_404(
@@ -153,7 +136,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class GenreViewSet(ModelMixinSet):
     """Получить список всех жанров без токена."""
-
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = "slug"
@@ -165,7 +147,6 @@ class GenreViewSet(ModelMixinSet):
 
 class CategoryViewSet(ModelMixinSet):
     """Получить список всех категорий без токена."""
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = "slug"
@@ -177,7 +158,6 @@ class CategoryViewSet(ModelMixinSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет с произведениями."""
-
     queryset = Title.objects.annotate(rating=Avg("reviews__score"))
     permission_classes = (IsAdminUserOrReadOnly,)
     filterset_class = TitleFilterSet
@@ -191,6 +171,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
 
     def get_serializer_class(self):
+        """Вернуть нужный сериализатор в зависимости от метода запроса."""
         if self.request.method == "GET":
             return TitleReadSerializer
         return TitleWriteSerializer

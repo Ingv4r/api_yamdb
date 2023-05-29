@@ -2,14 +2,14 @@ from django.contrib.auth import get_user_model
 from rest_framework import exceptions, serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
 
 class MyTokenObtainSerializer(serializers.ModelSerializer):
-    """Docsting"""
-
+    """Сериализатор для получения токена."""
     token_class = AccessToken
 
     username = serializers.CharField(write_only=True)
@@ -20,7 +20,7 @@ class MyTokenObtainSerializer(serializers.ModelSerializer):
         fields = ("username", "confirmation_code")
 
     def validate(self, data):
-        """Docsting"""
+        """Проверка валидности confirmation_code."""
         user = get_object_or_404(User, username=data.get("username"))
         if data.get("confirmation_code") == str(user.activation_code):
             token = self.get_token(user)
@@ -29,13 +29,12 @@ class MyTokenObtainSerializer(serializers.ModelSerializer):
 
     @classmethod
     def get_token(cls, user):
-        """Docsting"""
+        """Получить AccessToken."""
         return cls.token_class.for_user(user)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
-
     author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
@@ -61,7 +60,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев."""
-
     author = serializers.SlugRelatedField(
         read_only=True, slug_field="username"
     )
@@ -74,7 +72,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий."""
-
     class Meta:
         exclude = ("id",)
         model = Category
@@ -83,7 +80,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор жанров."""
-
     class Meta:
         exclude = ("id",)
         model = Genre
@@ -92,7 +88,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения данных произведений."""
-
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.IntegerField()
@@ -105,7 +100,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных произведений."""
-
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(), slug_field="slug"
     )
@@ -120,8 +114,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class AuthSerializer(serializers.ModelSerializer):
-    """Docsting"""
-
+    """Сериализатор для аутентификации."""
     username = serializers.RegexField(r"^[\w.@+-]+\Z", max_length=150)
     email = serializers.EmailField(max_length=254)
 
@@ -130,7 +123,7 @@ class AuthSerializer(serializers.ModelSerializer):
         fields = ("username", "email")
 
     def validate(self, data):
-        """Docsting"""
+        """Проверка уже зарегестрированных пользователей."""
         email_exists = User.objects.filter(email=data.get("email")).exists()
         username_exists = User.objects.filter(
             username=data.get("username")
@@ -149,8 +142,7 @@ class AuthSerializer(serializers.ModelSerializer):
 
 
 class AdminSerializer(serializers.ModelSerializer):
-    """Docsting"""
-
+    """Сериализатор для создания пользователей админом."""
     username = serializers.RegexField(r"^[\w.@+-]+\Z", max_length=150)
     email = serializers.EmailField(max_length=254)
 
@@ -166,7 +158,7 @@ class AdminSerializer(serializers.ModelSerializer):
         )
 
     def validate_email(self, value):
-        """Docsting"""
+        """Проверка сущестования пользователя с данным email."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "A user with this email already exists!"
@@ -174,7 +166,7 @@ class AdminSerializer(serializers.ModelSerializer):
         return value
 
     def validate_username(self, value):
-        """Docsting"""
+        """Проверка существования пользователя по username."""
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError(
                 "A user with this username already exists!"
@@ -183,8 +175,7 @@ class AdminSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    """Docsting"""
-
+    """Сериализатор для получения и редкатирования информации пользователем."""
     username = serializers.RegexField(r"^[\w.@+-]+\Z", max_length=150)
     email = serializers.EmailField(max_length=254)
 

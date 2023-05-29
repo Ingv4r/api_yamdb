@@ -3,8 +3,7 @@ from rest_framework.permissions import BasePermission
 
 
 class SuperUserOrAdminOnly(permissions.BasePermission):
-    """Docsting"""
-
+    """Доступ только для superuser или админ."""
     def has_permission(self, request, view):
         return (
             request.user
@@ -15,11 +14,13 @@ class SuperUserOrAdminOnly(permissions.BasePermission):
 
 
 class SuperUserOrAdminCreateOnly(permissions.BasePermission):
+    """Доутуп к объекту только у superuser и админа."""
     def has_object_permission(self, request, view, obj):
         return request.user.role == "admin" or request.user.is_superuser
 
 
 class AuthorOrStuffOnly(permissions.BasePermission):
+    """Доступ к объекту у автора объекта и администрации."""
     def has_object_permission(self, request, view, obj):
 
         return request.method in permissions.SAFE_METHODS or (
@@ -34,6 +35,7 @@ class AuthorOrStuffOnly(permissions.BasePermission):
 
 
 class IsAdminUserOrReadOnly(BasePermission):
+    """Доступ для чтения или администратора и superuser."""
     def has_permission(self, request, view):
         return (
             request.method in permissions.SAFE_METHODS
