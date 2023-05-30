@@ -3,14 +3,15 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.crypto import get_random_string
 
-CHOICES = (
-    ("user", "пользователь"),
-    ("moderator", "модератор"),
-    ("admin", "администратор"),
-)
-
 
 class User(AbstractUser):
+    """Кастомная модель пользователя с назначением роли."""
+    CHOICES = (
+        ("user", "пользователь"),
+        ("moderator", "модератор"),
+        ("admin", "администратор"),
+    )
+
     bio = models.TextField(
         "Биография",
         blank=True,
@@ -22,6 +23,18 @@ class User(AbstractUser):
         default="user",
     )
     email = models.EmailField(unique=True, max_length=254)
+
+    @property
+    def is_admin(self):
+        """Кастомный метод проверки роли админа."""
+        if self.role == self.CHOICES[2][0]:
+            return True
+
+    @property
+    def is_moderator(self):
+        """Кастомный метод проверки роли модератора."""
+        if self.role == self.CHOICES[1][0]:
+            return True
 
 
 class ConfirmationCode(models.Model):

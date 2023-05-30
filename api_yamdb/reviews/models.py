@@ -10,33 +10,30 @@ LIMITTEXT = 15
 
 class Genre(models.Model):
     """Модель жанра."""
-
     name = models.CharField("Название", max_length=256)
     slug = models.SlugField("URL жанра", unique=True, max_length=50)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = "Жанр"
 
+    def __str__(self):
+        return self.name
+
 
 class Category(models.Model):
     """Модель категорий."""
-
     name = models.CharField("Название", max_length=256)
     slug = models.SlugField("URL категории", unique=True, max_length=50)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = "Категория"
 
+    def __str__(self):
+        return self.name
+
 
 class Title(models.Model):
     """Модель произведений на сайте."""
-
     name = models.CharField("Название", max_length=256)
     year = models.IntegerField("Год выхода", validators=(validate_year,))
     description = models.TextField("Описание", blank=True, null=True)
@@ -58,7 +55,6 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель обзоров."""
-
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -112,7 +108,6 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель комментариев."""
-
     author = models.ForeignKey(
         User,
         related_name="comments",
@@ -131,7 +126,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ["-pub_date"]
+        ordering = ("-pub_date")
 
     def __str__(self):
         return self.text[:LIMITTEXT]

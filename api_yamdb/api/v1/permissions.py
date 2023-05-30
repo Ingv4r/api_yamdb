@@ -8,7 +8,7 @@ class SuperUserOrAdminOnly(permissions.BasePermission):
         return (
             request.user
             and request.user.is_authenticated
-            and request.user.role == "admin"
+            and request.user.is_admin
             or request.user.is_superuser
         )
 
@@ -16,7 +16,7 @@ class SuperUserOrAdminOnly(permissions.BasePermission):
 class SuperUserOrAdminCreateOnly(permissions.BasePermission):
     """Доутуп к объекту только у superuser и админа."""
     def has_object_permission(self, request, view, obj):
-        return request.user.role == "admin" or request.user.is_superuser
+        return request.user.is_admin or request.user.is_superuser
 
 
 class AuthorOrStuffOnly(permissions.BasePermission):
@@ -28,8 +28,8 @@ class AuthorOrStuffOnly(permissions.BasePermission):
             and (
                 obj.author == request.user
                 or request.user.is_superuser
-                or request.user.role == "admin"
-                or request.user.role == "moderator"
+                or request.user.is_admin
+                or request.user.is_moderator
             )
         )
 
@@ -40,5 +40,5 @@ class IsAdminUserOrReadOnly(BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_authenticated
-            and request.user.role == "admin"
+            and request.user.is_admin
         )
