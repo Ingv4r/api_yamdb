@@ -68,7 +68,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=["get", "patch"],
+        methods=("get", "patch"),
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
@@ -116,20 +116,16 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Кастомный queryset."""
-        review_id = self.kwargs.get("review_id")
-        title_id = self.kwargs.get("title_id")
         review = get_object_or_404(
-            Review.objects.filter(title_id=title_id), pk=review_id
-        )
+            Review,
+            pk=self.kwargs.get("review_id"))
         return review.comments.all()
 
     def perform_create(self, serializer):
         """Кастомный create-метод."""
-        review_id = self.kwargs.get("review_id")
-        title_id = self.kwargs.get("title_id")
         review = get_object_or_404(
-            Review.objects.filter(title_id=title_id), pk=review_id
-        )
+            Review,
+            pk=self.kwargs.get("review_id"))
         serializer.save(author=self.request.user, review=review)
 
 
