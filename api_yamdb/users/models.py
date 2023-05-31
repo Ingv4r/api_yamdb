@@ -27,14 +27,12 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         """Кастомный метод проверки роли админа."""
-        if self.role == self.CHOICES[2][0]:
-            return True
+        return self.role == self.CHOICES[2][0]
 
     @property
     def is_moderator(self):
         """Кастомный метод проверки роли модератора."""
-        if self.role == self.CHOICES[1][0]:
-            return True
+        return self.role == self.CHOICES[1][0]
 
 
 class ConfirmationCode(models.Model):
